@@ -573,18 +573,28 @@ function initTaskPage() {
   }
 }
 
-function buildHistoryDotRow(filledCount, total) {
-  const row = document.createElement("div");
-  row.className = "history-dots-row";
-  row.setAttribute("role", "presentation");
-  const n = Math.min(Math.max(0, filledCount), total);
-  for (let d = 0; d < total; d++) {
-    const dot = document.createElement("span");
-    dot.className =
-      d < n ? "history-dot history-dot--filled" : "history-dot history-dot--faded";
-    row.append(dot);
-  }
-  return row;
+function buildHistorySessionProgress(caption, done, total) {
+  const block = document.createElement("div");
+  block.className = "history-progress-block";
+  const cap = document.createElement("span");
+  cap.className = "history-progress-caption";
+  cap.textContent = caption;
+  const line = document.createElement("div");
+  line.className = "history-progress-line";
+  const track = document.createElement("div");
+  track.className = "history-bar-track";
+  const fill = document.createElement("div");
+  fill.className = "history-bar-fill";
+  const n = Math.min(Math.max(0, done), total);
+  const pct = total > 0 ? (n / total) * 100 : 0;
+  fill.style.width = `${pct}%`;
+  track.append(fill);
+  const frac = document.createElement("span");
+  frac.className = "history-bar-fraction";
+  frac.textContent = `${n}/${total}`;
+  line.append(track, frac);
+  block.append(cap, line);
+  return block;
 }
 
 function initHistoryPage() {
@@ -633,15 +643,15 @@ function initHistoryPage() {
     dateEl.className = "history-row-date";
     dateEl.textContent = dateLabel;
 
-    const dotsWrap = document.createElement("div");
-    dotsWrap.className = "history-row-dots";
-    dotsWrap.setAttribute(
+    const barsWrap = document.createElement("div");
+    barsWrap.className = "history-row-bars";
+    barsWrap.setAttribute(
       "aria-label",
       `Morning ${entry.morningCount} of ${tl}, evening ${entry.eveningCount} of ${tl}`
     );
-    dotsWrap.append(
-      buildHistoryDotRow(entry.morningCount, tl),
-      buildHistoryDotRow(entry.eveningCount, tl)
+    barsWrap.append(
+      buildHistorySessionProgress("Morning", entry.morningCount, tl),
+      buildHistorySessionProgress("Evening", entry.eveningCount, tl)
     );
 
     const iconSpan = document.createElement("span");
@@ -649,7 +659,7 @@ function initHistoryPage() {
     iconSpan.setAttribute("aria-hidden", "true");
     iconSpan.textContent = statusIcon;
 
-    li.append(dateEl, dotsWrap, iconSpan);
+    li.append(dateEl, barsWrap, iconSpan);
     fragment.append(li);
   }
 
