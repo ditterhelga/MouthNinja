@@ -3,8 +3,20 @@ import { load, save } from "./storage.js";
 
 const CELEBRATION_EMOJIS = ["🤪", "😆", "🥳", "🤩", "🐸", "🦄", "🍕", "💥", "🎉"];
 
+let lastCelebrationEmoji = null;
+
 function pickRandomCelebrationEmoji() {
-  return CELEBRATION_EMOJIS[Math.floor(Math.random() * CELEBRATION_EMOJIS.length)];
+  if (CELEBRATION_EMOJIS.length < 2) {
+    return CELEBRATION_EMOJIS[0];
+  }
+  let pick = CELEBRATION_EMOJIS[Math.floor(Math.random() * CELEBRATION_EMOJIS.length)];
+  let guard = 0;
+  while (pick === lastCelebrationEmoji && guard < 24) {
+    pick = CELEBRATION_EMOJIS[Math.floor(Math.random() * CELEBRATION_EMOJIS.length)];
+    guard += 1;
+  }
+  lastCelebrationEmoji = pick;
+  return pick;
 }
 
 function localCalendarDay() {
@@ -18,6 +30,15 @@ function localCalendarDay() {
 function yesterdayCalendarDay() {
   const d = new Date();
   d.setDate(d.getDate() - 1);
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${mo}-${day}`;
+}
+
+function calendarDayFromOffset(daysAgo) {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
   const y = d.getFullYear();
   const mo = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
@@ -82,6 +103,19 @@ function updateStreakIfDayJustCompleted(state) {
   state.streak.lastFullDay = today;
 }
 
+function updateHistoryForToday(state) {
+  const today = localCalendarDay();
+  if (!state.history || typeof state.history !== "object") state.history = {};
+  const m = state.sessionsToday.morning.completedIds.length;
+  const ev = state.sessionsToday.evening.completedIds.length;
+  const tl = TASKS.length;
+  state.history[today] = {
+    morningCount: m,
+    eveningCount: ev,
+    completed: m === tl && ev === tl,
+  };
+}
+
 function ensureCalendarDay(state) {
   const today = localCalendarDay();
   if (state.calendarDay !== today) {
@@ -112,8 +146,7 @@ function getCompletedIdsForList(state, session) {
 
 function formatStreakLabel(count) {
   const c = typeof count === "number" ? count : 0;
-  const unit = c === 1 ? "day" : "days";
-  return `🔥 ${c} ${unit} streak`;
+  return `🔥 ${c}`;
 }
 
 function renderTaskList() {
@@ -221,6 +254,42 @@ function renderTaskList() {
 }
 
 let homeTabsWired = false;
+let rewardOverlayWired = false;
+
+function maybeShowRewardOverlay() {
+  const overlay = document.getElementById("reward-overlay");
+  if (!overlay) return;
+  let state = load();
+  state = ensureCalendarDay(state);
+  const count = typeof state.streak.count === "number" ? state.streak.count : 0;
+  const shown = state.milestones.shownFiveDay === true;
+  if (count >= 5 && !shown) {
+    const emojiEl = document.getElementById("reward-emoji");
+    const rewardEmojis = ["🎉", "🔥", "🥷"];
+    if (emojiEl) {
+      emojiEl.textContent = rewardEmojis[Math.floor(Math.random() * rewardEmojis.length)];
+    }
+    overlay.removeAttribute("hidden");
+    overlay.setAttribute("aria-hidden", "false");
+  }
+  if (!rewardOverlayWired) {
+    rewardOverlayWired = true;
+    const btn = document.getElementById("reward-dismiss");
+    if (btn) {
+      btn.style.cursor = "pointer";
+      btn.addEventListener("click", () => {
+        const ov = document.getElementById("reward-overlay");
+        let s = load();
+        s.milestones.shownFiveDay = true;
+        save(s);
+        if (ov) {
+          ov.setAttribute("hidden", "");
+          ov.setAttribute("aria-hidden", "true");
+        }
+      });
+    }
+  }
+}
 
 function initHomePage() {
   const tablist = document.querySelector(".session-tabs");
@@ -245,11 +314,13 @@ function initHomePage() {
     });
   }
   renderTaskList();
+  maybeShowRewardOverlay();
 }
 
 window.addEventListener("pageshow", () => {
   if (document.querySelector(".task-list")) {
     renderTaskList();
+    maybeShowRewardOverlay();
   }
 });
 
@@ -395,6 +466,13 @@ function initTaskPage() {
     setToggleRunning(false);
     if (toggleBtn) toggleBtn.disabled = true;
     if (timerDisplay) timerDisplay.textContent = "00:00";
+    if (cameraVideo) {
+      try {
+        cameraVideo.pause();
+      } catch {
+        /* ignore */
+      }
+    }
     stopCameraStreamTracksKeepVisual();
     if (overlayEmoji) overlayEmoji.textContent = pickRandomCelebrationEmoji();
     if (completionTitle) completionTitle.textContent = "Boom! That was super! 💥";
@@ -418,19 +496,15 @@ function initTaskPage() {
 
   if (backLink) {
     backLink.addEventListener("click", (e) => {
-      const needConfirm =
-        tickId !== null || (remaining > 0 && remaining < initialDuration);
-      if (needConfirm) {
-        e.preventDefault();
-        if (confirm("Stop this task?")) {
-          if (tickId !== null) {
-            clearInterval(tickId);
-            tickId = null;
-          }
-          setToggleRunning(false);
-          stopCamera();
-          window.location.href = "index.html";
+      e.preventDefault();
+      if (confirm("Stop this task? You can finish it later 😊")) {
+        if (tickId !== null) {
+          clearInterval(tickId);
+          tickId = null;
         }
+        setToggleRunning(false);
+        stopCamera();
+        window.location.href = "index.html";
       }
     });
   }
@@ -490,6 +564,7 @@ function initTaskPage() {
         const ids = state.sessionsToday[session].completedIds;
         if (!ids.includes(task.id)) ids.push(task.id);
         updateStreakIfDayJustCompleted(state);
+        updateHistoryForToday(state);
         save(state);
       }
       stopCamera();
@@ -498,10 +573,97 @@ function initTaskPage() {
   }
 }
 
+function buildHistoryDotRow(filledCount, total) {
+  const row = document.createElement("div");
+  row.className = "history-dots-row";
+  row.setAttribute("role", "presentation");
+  const n = Math.min(Math.max(0, filledCount), total);
+  for (let d = 0; d < total; d++) {
+    const dot = document.createElement("span");
+    dot.className =
+      d < n ? "history-dot history-dot--filled" : "history-dot history-dot--faded";
+    row.append(dot);
+  }
+  return row;
+}
+
+function initHistoryPage() {
+  const list = document.getElementById("history-list");
+  if (!list) return;
+
+  const state = load();
+  const history = state.history && typeof state.history === "object" ? state.history : {};
+  const todayIso = localCalendarDay();
+  const yesterdayIso = yesterdayCalendarDay();
+  const tl = TASKS.length;
+
+  list.replaceChildren();
+  const fragment = document.createDocumentFragment();
+
+  for (let i = 0; i < 7; i++) {
+    const iso = calendarDayFromOffset(i);
+    const entry = history[iso] || {
+      morningCount: 0,
+      eveningCount: 0,
+      completed: false,
+    };
+
+    let dateLabel;
+    if (iso === todayIso) dateLabel = "Today";
+    else if (iso === yesterdayIso) dateLabel = "Yesterday";
+    else {
+      const [yy, mm, dd] = iso.split("-").map(Number);
+      const dt = new Date(yy, mm - 1, dd);
+      dateLabel = dt.toLocaleDateString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      });
+    }
+
+    let statusIcon;
+    if (entry.completed) statusIcon = "\u2714";
+    else if (entry.morningCount === 0 && entry.eveningCount === 0) statusIcon = "\u2716";
+    else statusIcon = "\u25D0";
+
+    const li = document.createElement("li");
+    li.className = "history-row";
+
+    const dateEl = document.createElement("div");
+    dateEl.className = "history-row-date";
+    dateEl.textContent = dateLabel;
+
+    const dotsWrap = document.createElement("div");
+    dotsWrap.className = "history-row-dots";
+    dotsWrap.setAttribute(
+      "aria-label",
+      `Morning ${entry.morningCount} of ${tl}, evening ${entry.eveningCount} of ${tl}`
+    );
+    dotsWrap.append(
+      buildHistoryDotRow(entry.morningCount, tl),
+      buildHistoryDotRow(entry.eveningCount, tl)
+    );
+
+    const iconSpan = document.createElement("span");
+    iconSpan.className = "history-row-icon";
+    iconSpan.setAttribute("aria-hidden", "true");
+    iconSpan.textContent = statusIcon;
+
+    li.append(dateEl, dotsWrap, iconSpan);
+    fragment.append(li);
+  }
+
+  list.append(fragment);
+}
+
 if (document.querySelector(".task-list")) {
   initHomePage();
 }
 
 if (document.body.classList.contains("page--task")) {
   initTaskPage();
+}
+
+if (document.body.classList.contains("page--history")) {
+  initHistoryPage();
 }

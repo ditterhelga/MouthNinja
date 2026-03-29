@@ -16,8 +16,16 @@
     <header class="header">
       <div class="header-row">
         <h1 class="logo">Mouth Ninja</h1>
-        <div class="streak-pill" aria-live="polite">
-          <span class="streak-text">🔥 0 days streak</span>
+        <div class="header-actions">
+          <div class="streak-pill" aria-live="polite">
+            <span class="streak-text">🔥 0</span>
+          </div>
+          <a
+            href="history.html"
+            class="header-icon-link"
+            aria-label="Open history"
+            title="History"
+            >📅</a>
         </div>
       </div>
     </header>
@@ -57,6 +65,21 @@
 
       <ul class="task-list" id="task-list-panel" role="list" aria-labelledby="tab-morning"></ul>
     </main>
+    <div
+      id="reward-overlay"
+      class="reward-overlay"
+      hidden
+      aria-hidden="true"
+    >
+      <div class="reward-dialog">
+        <p class="reward-emoji" id="reward-emoji" aria-hidden="true"></p>
+        <h2 class="reward-title">5 days in a row! 🔥</h2>
+        <p class="reward-text">Amazing job. Show this to mom 👀</p>
+        <button type="button" class="btn btn--primary" id="reward-dismiss">
+          Yay!
+        </button>
+      </div>
+    </div>
     <script type="module" src="js/app.js"></script>
   </body>
 </html>

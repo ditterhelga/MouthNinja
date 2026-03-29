@@ -16,7 +16,24 @@ export function defaultState() {
     milestones: {
       shownFiveDay: false,
     },
+    history: {},
   };
+}
+
+function mergeHistory(raw) {
+  const h = {};
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    for (const key of Object.keys(raw)) {
+      const v = raw[key];
+      if (!v || typeof v !== "object" || Array.isArray(v)) continue;
+      h[key] = {
+        morningCount: typeof v.morningCount === "number" ? v.morningCount : 0,
+        eveningCount: typeof v.eveningCount === "number" ? v.eveningCount : 0,
+        completed: typeof v.completed === "boolean" ? v.completed : false,
+      };
+    }
+  }
+  return h;
 }
 
 export function load() {
@@ -57,6 +74,7 @@ export function load() {
             ? s.milestones.shownFiveDay
             : base.milestones.shownFiveDay,
       },
+      history: mergeHistory(s.history),
     };
   } catch {
     return defaultState();
