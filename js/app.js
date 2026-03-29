@@ -271,7 +271,9 @@ function initTaskPage() {
   }
 
   const titleEl = document.querySelector(".task-title");
-  const cameraPlaceholder = document.querySelector(".camera-placeholder");
+  const cameraVideo = document.querySelector(".camera-video");
+  const cameraLoading = document.querySelector(".camera-loading");
+  const cameraFallback = document.querySelector(".camera-fallback");
   const timerDisplay = document.querySelector(".timer-display");
   const toggleBtn = document.querySelector(".timer-bar .btn--primary");
   const overlay = document.querySelector(".completion-overlay");
@@ -283,8 +285,73 @@ function initTaskPage() {
   const backLink = document.querySelector(".back-link");
 
   if (titleEl) titleEl.textContent = task.name;
-  if (cameraPlaceholder) cameraPlaceholder.textContent = task.emoji;
   document.title = `Mouth Ninja — ${task.name}`;
+
+  let cameraStream = null;
+  let cameraInitRequested = false;
+
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((track) => track.stop());
+      cameraStream = null;
+    }
+    if (cameraVideo) cameraVideo.srcObject = null;
+  }
+
+  function stopCameraStreamTracksKeepVisual() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((track) => track.stop());
+      cameraStream = null;
+    }
+  }
+
+  function hideCameraLoading() {
+    if (cameraLoading) cameraLoading.hidden = true;
+  }
+
+  function showCameraLoading() {
+    if (cameraLoading) cameraLoading.hidden = false;
+  }
+
+  function showCameraFallbackMessage() {
+    hideCameraLoading();
+    if (cameraVideo) cameraVideo.classList.add("camera-video--hidden");
+    if (cameraFallback) cameraFallback.hidden = false;
+  }
+
+  function initCameraOnce() {
+    if (cameraInitRequested) return;
+    cameraInitRequested = true;
+    showCameraLoading();
+    if (!cameraVideo || !navigator.mediaDevices?.getUserMedia) {
+      showCameraFallbackMessage();
+      return;
+    }
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode: "user" } })
+      .then((stream) => {
+        cameraStream = stream;
+        const hideLoadingWhenReady = () => {
+          hideCameraLoading();
+        };
+        cameraVideo.addEventListener("playing", hideLoadingWhenReady, { once: true });
+        cameraVideo.addEventListener("canplay", hideLoadingWhenReady, { once: true });
+        cameraVideo.srcObject = stream;
+        const p = cameraVideo.play();
+        if (p && typeof p.catch === "function") void p.catch(() => {});
+      })
+      .catch(() => {
+        showCameraFallbackMessage();
+      });
+  }
+
+  initCameraOnce();
+
+  function onLeaveTaskPage() {
+    stopCamera();
+  }
+  window.addEventListener("pagehide", onLeaveTaskPage);
+  window.addEventListener("beforeunload", onLeaveTaskPage);
 
   const initialDuration = task.durationSeconds;
   let remaining = initialDuration;
@@ -328,6 +395,7 @@ function initTaskPage() {
     setToggleRunning(false);
     if (toggleBtn) toggleBtn.disabled = true;
     if (timerDisplay) timerDisplay.textContent = "00:00";
+    stopCameraStreamTracksKeepVisual();
     if (overlayEmoji) overlayEmoji.textContent = pickRandomCelebrationEmoji();
     if (completionTitle) completionTitle.textContent = "Boom! That was super! 💥";
     if (userStartedTimerThisVisit) {
@@ -360,6 +428,7 @@ function initTaskPage() {
             tickId = null;
           }
           setToggleRunning(false);
+          stopCamera();
           window.location.href = "index.html";
         }
       }
@@ -423,6 +492,7 @@ function initTaskPage() {
         updateStreakIfDayJustCompleted(state);
         save(state);
       }
+      stopCamera();
       window.location.href = "index.html";
     });
   }

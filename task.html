@@ -20,7 +20,19 @@
 
     <main class="task-main">
       <section class="camera-panel card" aria-label="Camera preview">
-        <div class="camera-placeholder"></div>
+        <div class="camera-placeholder">
+          <p class="camera-loading">Starting camera...</p>
+          <video
+            class="camera-video"
+            autoplay
+            playsinline
+            muted
+          ></video>
+          <div class="camera-fallback" hidden>
+            <p class="camera-fallback-title">Camera not available</p>
+            <p class="camera-fallback-hint">Enable camera in settings to use this feature</p>
+          </div>
+        </div>
       </section>
 
       <section class="timer-bar card" aria-label="Timer">
