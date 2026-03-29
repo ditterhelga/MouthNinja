@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mouth Ninja — Task</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="page page--task">
+    <header class="task-top card card--flat">
+      <a class="back-link" href="index.html">Back</a>
+      <h2 class="task-title"></h2>
+    </header>
+
+    <main class="task-main">
+      <section class="camera-panel card" aria-label="Camera preview">
+        <div class="camera-placeholder"></div>
+      </section>
+
+      <section class="timer-bar card" aria-label="Timer">
+        <span class="timer-display">00:00</span>
+        <button type="button" class="btn btn--primary" aria-label="Play">▶️</button>
+      </section>
+    </main>
+
+    <div class="completion-overlay" aria-hidden="true">
+      <div class="completion-dialog">
+        <p class="completion-emoji" aria-hidden="true">&#127881;</p>
+        <p class="completion-title">Time&apos;s up!</p>
+        <div class="completion-actions">
+          <button type="button" class="btn btn--primary completion-btn-did">I did it!</button>
+          <button type="button" class="btn btn--secondary completion-btn-retry">Try again</button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
