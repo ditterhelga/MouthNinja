@@ -58,8 +58,28 @@ const OVERLAY_TEXT = /** @type {Record<Exclude<SessionListGateMode, null>, strin
   eveningWait: "Evening training starts at 4 PM. Come back later, ninja!",
 });
 
-/** DEBUG: instant session checkbox on task rows — remove before release */
-const MN_DEBUG_SESSION_TOGGLE = true;
+const MN_DEBUG_SESSION_TOGGLE = false;
+
+const EXERCISE_DONE_GIFS = [
+  "assets/gifs/Cat%20Driving%20GIF%20by%20hamlet.gif",
+  "assets/gifs/Cat%20Racing%20GIF.gif",
+  "assets/gifs/Dance%20Party%20Cat%20GIF.gif",
+  "assets/gifs/Girl%20Car%20GIF.gif",
+  "assets/gifs/I%20Love%20You%20GIF.gif",
+  "assets/gifs/Kermit%20The%20Frog%20Reaction%20GIF%20by%20Muppet%20Wiki.gif",
+  "assets/gifs/Kissing%20Shaquille%20O%20Neal%20GIF%20by%20Papa%20Johns.gif",
+  "assets/gifs/Locked%20In%20Popcorn%20GIF.gif",
+  "assets/gifs/Mr%20Bean%20Dancing%20GIF.gif",
+  "assets/gifs/You%20Can%20Do%20It%20GIF%20by%20The%20Woobles.gif",
+];
+
+const EXERCISE_DONE_MESSAGES = [
+  "Nice work, ninja!",
+  "Crushed it!",
+  "One down!",
+  "The ninja cat approves!",
+  "Killing it!",
+];
 
 function formatTime(totalSec) {
   const s = Math.max(0, Math.ceil(totalSec));
@@ -366,6 +386,10 @@ async function main() {
   const btnCongratsDismiss = qs("btn-congrats-dismiss");
   const overlaySpin = qs("overlay-spin-root");
   const spinMount = qs("spin-wheel-mount");
+
+  const exerciseDoneOverlay = qs("overlay-exercise-done");
+  const exerciseDoneGif = /** @type {HTMLImageElement} */ (qs("exercise-done-gif"));
+  const exerciseDoneMsg = qs("exercise-done-msg");
 
   const sidebarCountEl = qs("sidebar-count-big");
   const sidebarDotsEl = qs("sidebar-progress-dots");
@@ -709,6 +733,13 @@ async function main() {
     refreshFullListScreen();
   });
 
+  const sidebarBrand = document.getElementById("sidebar-brand");
+  if (sidebarBrand) {
+    sidebarBrand.addEventListener("click", () => {
+      selectPeriod(defaultPeriodForNow());
+    });
+  }
+
   const btnTestSpinWheel = document.getElementById("btn-test-spin-wheel");
   if (MN_DEBUG_SESSION_TOGGLE && btnTestSpinWheel) {
     btnTestSpinWheel.hidden = false;
@@ -756,7 +787,28 @@ async function main() {
     }
   }
 
+  function showExerciseDoneOverlay() {
+    const gif = EXERCISE_DONE_GIFS[Math.floor(Math.random() * EXERCISE_DONE_GIFS.length)];
+    const msg = EXERCISE_DONE_MESSAGES[Math.floor(Math.random() * EXERCISE_DONE_MESSAGES.length)];
+    exerciseDoneGif.src = gif;
+    exerciseDoneMsg.textContent = msg;
+    exerciseDoneOverlay.hidden = false;
+    exerciseDoneOverlay.setAttribute("aria-hidden", "false");
+  }
+
+  function dismissExerciseDoneOverlay() {
+    exerciseDoneOverlay.hidden = true;
+    exerciseDoneOverlay.setAttribute("aria-hidden", "true");
+    exerciseDoneGif.src = "";
+  }
+
+  exerciseDoneOverlay.addEventListener("click", () => {
+    dismissExerciseDoneOverlay();
+    leaveExerciseView();
+  });
+
   function leaveExerciseView() {
+    dismissExerciseDoneOverlay();
     cleanupPipeline();
     detachCanvasResolution?.();
     releaseCamera(video);
@@ -831,6 +883,7 @@ async function main() {
     syncStatus(false, false);
 
     let prevHadActiveMovementUi = false;
+    let exerciseDoneShown = false;
 
     try {
       await requestFrontCamera(video);
@@ -868,6 +921,10 @@ async function main() {
             statusEl.textContent = "Nice work!";
             statusEl.dataset.state = "done";
             prevHadActiveMovementUi = false;
+            if (!exerciseDoneShown) {
+              exerciseDoneShown = true;
+              showExerciseDoneOverlay();
+            }
             return;
           }
 

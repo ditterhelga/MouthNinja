@@ -30,7 +30,7 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles/main.css?v=33" />
+    <link rel="stylesheet" href="styles/main.css?v=34" />
     <link rel="apple-touch-icon" href="assets/icons/app-icon-192.png" />
   </head>
   <body>
@@ -38,7 +38,7 @@
       <div class="list-shell">
         <aside class="sidebar" aria-label="Sessions">
           <div class="sidebar-top">
-            <div class="sidebar-brand">
+            <div class="sidebar-brand" id="sidebar-brand" role="button" tabindex="0" style="cursor:pointer">
               <img class="sidebar-logo" src="assets/images/logo-ninja.png" alt="" />
             </div>
             <nav class="sidebar-nav" aria-label="Sessions and history">
@@ -145,6 +145,12 @@
       <div id="spin-wheel-mount"></div>
     </div>
 
+    <div id="overlay-exercise-done" class="exercise-done-overlay" hidden aria-hidden="true">
+      <img id="exercise-done-gif" class="exercise-done-overlay__gif" src="" alt="" />
+      <p id="exercise-done-msg" class="exercise-done-overlay__msg"></p>
+      <p class="exercise-done-overlay__hint">Tap anywhere to continue</p>
+    </div>
+
     <div id="view-exercise" class="view" aria-hidden="true">
       <div class="exercise-stage">
         <header class="exercise-header">
@@ -209,6 +215,6 @@
       window.MediaPipeTasksVision = MediaPipeTasksVision;
     </script>
     <script type="module" src="js/camera.js?v=4"></script>
-    <script type="module" src="js/app.js?v=32"></script>
+    <script type="module" src="js/app.js?v=35"></script>
   </body>
 </html>
