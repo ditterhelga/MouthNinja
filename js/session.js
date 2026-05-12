@@ -12,7 +12,7 @@ export function todayKey(d = new Date()) {
 }
 
 /**
- * Full store shape: Record<yyyy-mm-dd, { morningIds, eveningIds, congratMorning?, congratEvening?, prizeLabel?: string | null }>
+ * Full store shape: Record<yyyy-mm-dd, { morningIds, eveningIds, congratMorning?, congratEvening?, morningPrize?, eveningPrize?, prizeLabel? }>
  */
 function readStore() {
   try {
@@ -49,24 +49,31 @@ export function listDayKeysDescending() {
   return Object.keys(store).sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
 }
 
-/** @returns {{ morningIds: string[], eveningIds: string[], prizeLabel: string | null } | null} */
+/** @returns {{ morningIds: string[], eveningIds: string[], morningPrize: string | null, eveningPrize: string | null, prizeLabel: string | null } | null} */
 export function getDayRecord(dayKey) {
   const store = readStore();
   const day = store[dayKey];
   if (!day || typeof day !== "object") return null;
   const m = Array.isArray(day.morningIds) ? [...day.morningIds] : [];
   const e = Array.isArray(day.eveningIds) ? [...day.eveningIds] : [];
-  const prize =
-    typeof day.prizeLabel === "string" && day.prizeLabel.trim() !== ""
-      ? day.prizeLabel.trim()
-      : null;
-  return { morningIds: m, eveningIds: e, prizeLabel: prize };
+  const mp = typeof day.morningPrize === "string" && day.morningPrize.trim() !== "" ? day.morningPrize.trim() : null;
+  const ep = typeof day.eveningPrize === "string" && day.eveningPrize.trim() !== "" ? day.eveningPrize.trim() : null;
+  const legacy = typeof day.prizeLabel === "string" && day.prizeLabel.trim() !== "" ? day.prizeLabel.trim() : null;
+  return { morningIds: m, eveningIds: e, morningPrize: mp, eveningPrize: ep, prizeLabel: legacy };
 }
 
-/** Persist wheel prize copy with that day's session blob */
-export function saveDayPrize(dayKey, prizeFullLabel) {
+/**
+ * Persist wheel prize for a specific period.
+ * @param {string} dayKey
+ * @param {string} prizeFullLabel
+ * @param {Period} [period]
+ */
+export function saveDayPrize(dayKey, prizeFullLabel, period) {
   const { store, day } = ensureDay(dayKey);
-  day.prizeLabel = String(prizeFullLabel ?? "").trim() || null;
+  const val = String(prizeFullLabel ?? "").trim() || null;
+  if (period === "morning") day.morningPrize = val;
+  else if (period === "evening") day.eveningPrize = val;
+  else day.prizeLabel = val;
   writeStore(store);
 }
 
@@ -142,7 +149,7 @@ export function setCongratsShownForEvening(dayKey = todayKey()) {
   writeStore(store);
 }
 
-/** True only when BOTH morning and evening are 7/7 on the same calendar day (spin wheel qualifies). */
+/** True only when BOTH morning and evening are 7/7 on the same calendar day. */
 export function bothPeriodsFullyComplete(allExerciseIds, dayKey = todayKey()) {
   return (
     isPeriodFullyComplete("morning", allExerciseIds, dayKey) &&
@@ -150,7 +157,31 @@ export function bothPeriodsFullyComplete(allExerciseIds, dayKey = todayKey()) {
   );
 }
 
-/** Date string for which combo spin was consumed (shown once when both sessions complete same day). */
+/** Has the spin wheel already been shown for this period today? */
+export function spinShownForPeriod(period, dayKey = todayKey()) {
+  const store = readStore();
+  const day = store[dayKey];
+  if (!day) return false;
+  return period === "morning" ? !!day.spinShownMorning : !!day.spinShownEvening;
+}
+
+/** Mark spin wheel as shown for a period today. */
+export function setSpinShownForPeriod(period, dayKey = todayKey()) {
+  const { store, day } = ensureDay(dayKey);
+  if (period === "morning") day.spinShownMorning = true;
+  else day.spinShownEvening = true;
+  writeStore(store);
+}
+
+/** Reset spin-shown flag (debug/QA only). */
+export function clearSpinShownForPeriod(period, dayKey = todayKey()) {
+  const { store, day } = ensureDay(dayKey);
+  if (period === "morning") day.spinShownMorning = false;
+  else day.spinShownEvening = false;
+  writeStore(store);
+}
+
+/** @deprecated kept for backwards compat — use spinShownForPeriod instead */
 export function spinWheelConsumedForDate() {
   try {
     return localStorage.getItem(STORAGE_SPIN) || null;
@@ -159,6 +190,7 @@ export function spinWheelConsumedForDate() {
   }
 }
 
+/** @deprecated */
 export function setSpinWheelConsumedForDate(dayKey = todayKey()) {
   try {
     localStorage.setItem(STORAGE_SPIN, dayKey);

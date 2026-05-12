@@ -4,7 +4,7 @@ const NOTHING_FILL = "#1a1a1a";
 const RIM_DARK = "#2a3a00";
 const RIM_ACCENT = "#7ab428";
 
-const SEGMENTS = [
+export const FULL_SEGMENTS = [
   { fullLabel: "5 min screen time", wheelLabel: "5 min", weight: 30 },
   { fullLabel: "10 min screen time", wheelLabel: "10 min", weight: 20 },
   { fullLabel: "15 min screen time", wheelLabel: "15 min", weight: 10 },
@@ -21,7 +21,18 @@ const SEGMENTS = [
   },
 ];
 
-const NOTHING_INDEX = SEGMENTS.length - 1;
+export const SIMPLE_SEGMENTS = [
+  { fullLabel: "5 min screen time", wheelLabel: "5 min", weight: 1 },
+  { fullLabel: "10 min screen time", wheelLabel: "10 min", weight: 1 },
+  { fullLabel: "5 min screen time", wheelLabel: "5 min", weight: 1 },
+  { fullLabel: "5 min screen time", wheelLabel: "5 min", weight: 1 },
+  { fullLabel: "You got nothing... but you're still a ninja!", wheelLabel: "Nothing… 🥷", weight: 1 },
+  { fullLabel: "10 min screen time", wheelLabel: "10 min", weight: 1 },
+  { fullLabel: "5 min screen time", wheelLabel: "5 min", weight: 1 },
+  { fullLabel: "10 min screen time", wheelLabel: "10 min", weight: 1 },
+  { fullLabel: "5 min screen time", wheelLabel: "5 min", weight: 1 },
+  { fullLabel: "You got nothing... but you're still a ninja!", wheelLabel: "Nothing… 🥷", weight: 1 },
+];
 
 const NS = "http://www.w3.org/2000/svg";
 
@@ -36,20 +47,19 @@ const R_FILL = 166;
 const R_OUTER = 171;
 /** Decorative inner accent ring. */
 const R_ACCENT = 167;
-const SLICE = 360 / SEGMENTS.length;
 const HUB_R = 20;
 /** Top outer edge of rim stroke (half of stroke extends past R_OUTER). */
 const R_OUTER_STROKE_HALF = 6;
 const POINTER_BASE_Y = VB.cy - R_OUTER - R_OUTER_STROKE_HALF;
 
-function weightedIndex() {
-  const total = SEGMENTS.reduce((s, e) => s + e.weight, 0);
+function weightedIndex(segments) {
+  const total = segments.reduce((s, e) => s + e.weight, 0);
   let r = Math.random() * total;
-  for (let i = 0; i < SEGMENTS.length; i += 1) {
-    if (r < SEGMENTS[i].weight) return i;
-    r -= SEGMENTS[i].weight;
+  for (let i = 0; i < segments.length; i += 1) {
+    if (r < segments[i].weight) return i;
+    r -= segments[i].weight;
   }
-  return SEGMENTS.length - 1;
+  return segments.length - 1;
 }
 
 function polar(cx, cy, r, angleDeg) {
@@ -93,8 +103,8 @@ function segmentGradientStops(baseHex) {
   };
 }
 
-function segmentBaseFill(i) {
-  if (i === NOTHING_INDEX) return NOTHING_FILL;
+function segmentBaseFill(i, segments) {
+  if (segments[i].wheelLabel.startsWith("Nothing")) return NOTHING_FILL;
   return PALETTE[i % 3];
 }
 
@@ -110,17 +120,19 @@ function radialLabelRotation(midDeg) {
   return rot;
 }
 
-function segmentLabelFill(i) {
-  if (i === NOTHING_INDEX) return "#ffffff";
+function segmentLabelFill(i, segments) {
+  if (segments[i].wheelLabel.startsWith("Nothing")) return "#ffffff";
   if (i % 3 === 0) return "#ffffff";
   return "#2a3a00";
 }
 
 /**
- * @returns {{ el: SVGSVGElement, setRotationDeg: (deg: number, transition?: string) => void }}
+ * @param {Array<{fullLabel:string, wheelLabel:string, weight:number}>} [segments]
+ * @returns {{ el: SVGSVGElement, setRotationDeg: (deg: number, transition?: string) => void, sliceDeg: number, segments: any[] }}
  */
-export function createWheelDisk() {
+export function createWheelDisk(segments = FULL_SEGMENTS) {
   const { w, h, cx, cy } = VB;
+  const SLICE = 360 / segments.length;
 
   const svg = document.createElementNS(NS, "svg");
   svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
@@ -132,8 +144,8 @@ export function createWheelDisk() {
 
   const gradPrefix = `swg-${Math.random().toString(36).slice(2, 10)}`;
   const defs = document.createElementNS(NS, "defs");
-  for (let i = 0; i < SEGMENTS.length; i += 1) {
-    const base = segmentBaseFill(i);
+  for (let i = 0; i < segments.length; i += 1) {
+    const base = segmentBaseFill(i, segments);
     const { inner, outer } = segmentGradientStops(base);
     const rg = document.createElementNS(NS, "radialGradient");
     rg.setAttribute("id", `${gradPrefix}-${i}`);
@@ -155,7 +167,7 @@ export function createWheelDisk() {
   const spinGroup = document.createElementNS(NS, "g");
   spinGroup.setAttribute("class", "spin-wheel__rotator");
 
-  for (let i = 0; i < SEGMENTS.length; i += 1) {
+  for (let i = 0; i < segments.length; i += 1) {
     const start = i * SLICE;
     const end = start + SLICE;
     const large = SLICE > 180 ? 1 : 0;
@@ -175,13 +187,13 @@ export function createWheelDisk() {
     const tp = polar(cx, cy, tR, mid);
     const rot = radialLabelRotation(mid);
     const text = document.createElementNS(NS, "text");
-    text.textContent = SEGMENTS[i].wheelLabel;
+    text.textContent = segments[i].wheelLabel;
     text.setAttribute("class", "wheel-segment-label");
     text.setAttribute("x", String(tp.x));
     text.setAttribute("y", String(tp.y));
     text.setAttribute("text-anchor", "middle");
     text.setAttribute("dominant-baseline", "middle");
-    text.setAttribute("fill", segmentLabelFill(i));
+    text.setAttribute("fill", segmentLabelFill(i, segments));
     text.setAttribute(
       "transform",
       `rotate(${rot.toFixed(2)} ${tp.x.toFixed(2)} ${tp.y.toFixed(2)})`
@@ -249,12 +261,12 @@ export function createWheelDisk() {
     spinGroup.style.transform = `rotate(${deg}deg)`;
   }
 
-  return { el: svg, setRotationDeg, sliceDeg: SLICE };
+  return { el: svg, setRotationDeg, sliceDeg: SLICE, segments };
 }
 
 /** Rotate wheel so segment `index` center sits under fixed top pointer. */
-export function spinToRandomWinner(_, setRotationDeg, sliceDeg, currentRotationRef) {
-  const idx = weightedIndex();
+export function spinToRandomWinner(_, setRotationDeg, sliceDeg, currentRotationRef, segments = FULL_SEGMENTS) {
+  const idx = weightedIndex(segments);
   const spins = 5 + Math.floor(Math.random() * 3);
   const curNorm = ((currentRotationRef.value % 360) + 360) % 360;
   const desired = ((-((idx + 0.5) * sliceDeg) % 360) + 360) % 360;
@@ -271,7 +283,7 @@ export function spinToRandomWinner(_, setRotationDeg, sliceDeg, currentRotationR
   currentRotationRef.value = next;
   return {
     index: idx,
-    fullLabel: SEGMENTS[idx].fullLabel,
+    fullLabel: segments[idx].fullLabel,
     durationMs: SPIN_DURATION_MS,
   };
 }
@@ -281,9 +293,10 @@ const BACK_SVG =
 
 /**
  * @param {HTMLElement} mountNode
- * @param {{ onClaimPrize: (fullLabel: string) => void, onDismiss: () => void }} opts
+ * @param {{ onClaimPrize: (fullLabel: string) => void, onDismiss: () => void, segments?: Array<{fullLabel:string, wheelLabel:string, weight:number}> }} opts
  */
 export function mountSpinWheel(mountNode, opts) {
+  const segs = opts.segments || FULL_SEGMENTS;
   mountNode.replaceChildren();
   mountNode.classList.add("spin-wheel-root");
 
@@ -310,7 +323,7 @@ export function mountSpinWheel(mountNode, opts) {
   const diskStack = document.createElement("div");
   diskStack.className = "spin-wheel__disk-stack";
 
-  const { el: svgEl, setRotationDeg, sliceDeg } = createWheelDisk();
+  const { el: svgEl, setRotationDeg, sliceDeg } = createWheelDisk(segs);
   diskStack.append(svgEl);
 
   const rotationRef = { value: 0 };
@@ -348,7 +361,8 @@ export function mountSpinWheel(mountNode, opts) {
       wrap,
       setRotationDeg,
       sliceDeg,
-      rotationRef
+      rotationRef,
+      segs
     );
     window.setTimeout(() => {
       prizeLabel.textContent = fullLabel;

@@ -1,11 +1,11 @@
-import { EXERCISES } from "./exercises.js";
+import { EXERCISES } from "./exercises.js?v=35";
 import {
   createExerciseFacePipeline,
   CAMERA_MEDIA_CONSTRAINTS,
   syncCanvasResolutionToVideo,
 } from "./camera.js?v=4";
 import * as sess from "./session.js";
-import { mountSpinWheel } from "./spin-wheel.js?v=31";
+import { mountSpinWheel, SIMPLE_SEGMENTS, FULL_SEGMENTS } from "./spin-wheel.js?v=39";
 
 function formatHistoryDay(dayKey) {
   const parts = dayKey.split("-");
@@ -58,7 +58,7 @@ const OVERLAY_TEXT = /** @type {Record<Exclude<SessionListGateMode, null>, strin
   eveningWait: "Evening training starts at 4 PM. Come back later, ninja!",
 });
 
-const MN_DEBUG_SESSION_TOGGLE = false;
+const MN_DEBUG_SESSION_TOGGLE = true;
 
 const EXERCISE_DONE_GIFS = [
   "assets/gifs/Cat%20Driving%20GIF%20by%20hamlet.gif",
@@ -567,54 +567,43 @@ async function main() {
   }
 
   /**
-   * Spin wheel only when BOTH sessions are fully complete same day (see session.bothPeriodsFullyComplete).
-   * Otherwise full-period completion shows the standard congrats overlay (cat finish).
+   * Two-tier wheel:
+   *  - Morning complete → simple wheel (5 min / 10 min / nothing)
+   *  - Evening complete + morning also done today → full wheel (all prizes)
+   *  - Evening complete + morning NOT done → simple wheel
+   * Each wheel fires once per period per day (tracked in localStorage).
    * @param {Period} finishedPeriod Which period reached 7/7 on this return.
    */
   function enqueueCompletionFlowAfterReturn(finishedPeriod) {
     const dk = sess.todayKey();
+
+    if (sess.spinShownForPeriod(finishedPeriod, dk)) return;
+
     const morningFull = sess.isPeriodFullyComplete("morning", EXERCISE_IDS, dk);
-    const eveningFull = sess.isPeriodFullyComplete("evening", EXERCISE_IDS, dk);
-    const comboFull = sess.bothPeriodsFullyComplete(EXERCISE_IDS, dk);
 
-    if (comboFull) {
-      const spinKey = sess.spinWheelConsumedForDate();
-      if (spinKey !== dk) {
-        sess.setSpinWheelConsumedForDate(dk);
-        showOverlay(overlaySpin);
-        spinMount.replaceChildren();
-        mountSpinWheel(spinMount, {
-          onClaimPrize: (fullLabel) => {
-            try {
-              sess.saveDayPrize(sess.todayKey(), fullLabel);
-            } catch (err) {
-              console.error("[MouthNinja] saveDayPrize:", err);
-            } finally {
-              hideOverlay(overlaySpin);
-            }
-          },
-          onDismiss: () => {
-            hideOverlay(overlaySpin);
-          },
-        });
-        return;
-      }
+    let segments = SIMPLE_SEGMENTS;
+    if (finishedPeriod === "evening" && morningFull) {
+      segments = FULL_SEGMENTS;
     }
 
-    if (morningFull && finishedPeriod === "morning" && !eveningFull) {
-      if (!sess.congratsShownForMorning(dk)) {
-        sess.setCongratsShownForMorning(dk);
-        showOverlay(overlayCongrats);
-      }
-      return;
-    }
-
-    if (eveningFull && finishedPeriod === "evening" && !morningFull) {
-      if (!sess.congratsShownForEvening(dk)) {
-        sess.setCongratsShownForEvening(dk);
-        showOverlay(overlayCongrats);
-      }
-    }
+    sess.setSpinShownForPeriod(finishedPeriod, dk);
+    showOverlay(overlaySpin);
+    spinMount.replaceChildren();
+    mountSpinWheel(spinMount, {
+      segments,
+      onClaimPrize: (fullLabel) => {
+        try {
+          sess.saveDayPrize(sess.todayKey(), fullLabel, finishedPeriod);
+        } catch (err) {
+          console.error("[MouthNinja] saveDayPrize:", err);
+        } finally {
+          hideOverlay(overlaySpin);
+        }
+      },
+      onDismiss: () => {
+        hideOverlay(overlaySpin);
+      },
+    });
   }
 
   function handleDebugSessionToggle(exerciseId, checked) {
@@ -623,6 +612,9 @@ async function main() {
     if (checked) sess.addCompletedExercise(activePeriod, exerciseId, dk);
     else sess.removeCompletedExercise(activePeriod, exerciseId, dk);
     const afterFull = sess.isPeriodFullyComplete(activePeriod, EXERCISE_IDS, dk);
+    if (beforeFull && !afterFull) {
+      sess.clearSpinShownForPeriod(activePeriod, dk);
+    }
     refreshFullListScreen();
     if (!beforeFull && afterFull && checked) {
       enqueueCompletionFlowAfterReturn(activePeriod);
@@ -674,9 +666,11 @@ async function main() {
 
       sessCol.append(periodBadge("Morning", morningDone), periodBadge("Evening", eveningDone));
 
+      const prizes = [record.morningPrize, record.eveningPrize, record.prizeLabel]
+        .filter(Boolean);
       const prizeEl = document.createElement("div");
       prizeEl.className = "history-card__prize history-entry-time";
-      prizeEl.textContent = record.prizeLabel ?? "";
+      prizeEl.textContent = prizes.length ? prizes.join(", ") : "";
 
       card.append(dateSpan, sessCol, prizeEl);
       historyListEl.appendChild(card);
@@ -741,7 +735,7 @@ async function main() {
   }
 
   const btnTestSpinWheel = document.getElementById("btn-test-spin-wheel");
-  if (MN_DEBUG_SESSION_TOGGLE && btnTestSpinWheel) {
+  if (btnTestSpinWheel) {
     btnTestSpinWheel.hidden = false;
     btnTestSpinWheel.addEventListener("click", () => {
       spinMount.replaceChildren();
