@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+          regs.forEach(function (reg) {
+            reg.unregister();
+          });
+        });
+      }
+    </script>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Mouth Ninja" />
+    <meta name="theme-color" content="#0d0d0d" />
+    <meta name="color-scheme" content="dark" />
+    <title>Mouth Ninja</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/main.css?v=33" />
+    <link rel="apple-touch-icon" href="assets/icons/app-icon-192.png" />
+  </head>
+  <body>
+    <div id="view-list" class="view view--active view--list" aria-hidden="false">
+      <div class="list-shell">
+        <aside class="sidebar" aria-label="Sessions">
+          <div class="sidebar-top">
+            <div class="sidebar-brand">
+              <img class="sidebar-logo" src="assets/images/logo-ninja.png" alt="" />
+            </div>
+            <nav class="sidebar-nav" aria-label="Sessions and history">
+              <button type="button" class="nav-item active" id="btn-tab-morning">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.75" />
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span>Morning</span>
+              </button>
+              <button type="button" class="nav-item" id="btn-tab-evening">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span>Evening</span>
+              </button>
+              <button type="button" class="nav-item" id="btn-tab-history">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.75" />
+                  <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span>History</span>
+              </button>
+              <button type="button" class="sidebar-test-spin" id="btn-test-spin-wheel" hidden>
+                Wheel test
+              </button>
+            </nav>
+          </div>
+          <div class="sidebar-progress">
+            <div class="sidebar-progress-stack">
+              <img
+                class="sidebar-progress-cat"
+                id="sidebar-progress-cat"
+                src="assets/images/cat.png"
+                alt=""
+              />
+              <section class="sidebar-progress-panel" id="sidebar-progress-panel" aria-label="Progress">
+                <div class="progress-counter" id="sidebar-progress-counter">
+                  <span class="count-big" id="sidebar-count-big">0</span><span class="count-slash">/7</span><span class="count-suffix"> done</span>
+                </div>
+                <div id="sidebar-progress-dots" class="sidebar-progress-dots" role="presentation"></div>
+                <p id="sidebar-progress-motivation" class="sidebar-progress-motivation">Let's go!</p>
+              </section>
+            </div>
+          </div>
+        </aside>
+        <main class="list-main-area">
+          <div class="list-main">
+            <header class="session-header">
+              <h1 id="session-title" class="session-title">Morning Session</h1>
+              <p id="session-tagline" class="session-subtitle">Morning session — plenty of time!</p>
+            </header>
+            <div id="panel-exercises" class="main-stack-panel">
+              <div class="session-list-stack">
+                <div id="exercise-list" class="exercise-list" role="list"></div>
+                <div
+                  id="session-state-overlay"
+                  class="session-state-overlay"
+                  hidden
+                  aria-hidden="true"
+                >
+                  <div class="session-state-overlay__cluster">
+                    <img
+                      id="session-state-overlay-cat"
+                      class="session-state-overlay__cat"
+                      src=""
+                      alt=""
+                    />
+                    <p id="session-state-overlay-msg" class="session-state-overlay__msg"></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="panel-history" class="main-stack-panel" hidden>
+              <div id="history-list" class="history-list" role="list"></div>
+              <p id="history-empty" class="history-empty" hidden>No sessions yet. Get training, ninja!</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Full-screen overlays (list UX) -->
+    <div id="overlay-late-morning" class="app-overlay app-overlay--light" aria-hidden="true" hidden>
+      <div class="app-overlay__inner app-overlay__inner--cat">
+        <img class="app-overlay__cat-img" src="assets/images/cat-sad.png" alt="" />
+        <p class="app-overlay__message">
+          Oh no! Morning training is over... The ninja cat is very disappointed. Don't miss it tomorrow!
+        </p>
+      </div>
+    </div>
+
+    <div id="overlay-session-congrats" class="app-overlay app-overlay--celebrate" aria-hidden="true" hidden>
+      <div class="app-overlay__inner">
+        <img class="app-overlay__cat-img app-overlay__cat-img--finish" src="assets/images/cat-finish.png" alt="" />
+        <p class="boom-message app-overlay__boom-message">
+          <span class="boom-word">BOOM!</span> <span class="boom-tail">All done!</span>
+        </p>
+        <button type="button" class="app-overlay__dismiss" id="btn-congrats-dismiss">Continue</button>
+      </div>
+    </div>
+
+    <div id="overlay-spin-root" class="app-overlay app-overlay--spin" aria-hidden="true" hidden>
+      <div id="spin-wheel-mount"></div>
+    </div>
+
+    <div id="view-exercise" class="view" aria-hidden="true">
+      <div class="exercise-stage">
+        <header class="exercise-header">
+          <button type="button" class="btn-back" id="btn-back" aria-label="Back">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M14 6L8 12l6 6"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+          <h1 class="exercise-title" id="exercise-name">Cup</h1>
+          <span class="exercise-step" id="exercise-step">2/7</span>
+        </header>
+
+        <main class="exercise-main">
+          <div class="camera-shell">
+          <div class="camera-card" id="camera-card">
+            <canvas id="crop-canvas" class="crop-canvas"></canvas>
+            <svg
+              id="bracket-overlay"
+              class="bracket-overlay"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <g id="bracket-group" class="bracket-group" data-hidden="true">
+                <path id="bracket-tl" class="bracket-corner" />
+                <path id="bracket-tr" class="bracket-corner" />
+                <path id="bracket-bl" class="bracket-corner" />
+                <path id="bracket-br" class="bracket-corner" />
+              </g>
+            </svg>
+          </div>
+          <p id="camera-error" class="camera-error" hidden></p>
+          </div>
+
+          <div class="progress-wrap">
+            <div class="progress-track" id="progress-track">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+          </div>
+
+          <div class="timer" id="timer-display">02:00</div>
+          <p class="status-msg" id="status-msg">Come back!</p>
+        </main>
+      </div>
+    </div>
+
+    <video id="camera-video" class="camera-video" playsinline muted></video>
+
+    <!--
+      vision_bundle.mjs is ESM only — no automatic global. This inline module uses a static import (Safari-friendly)
+      then exposes window.MediaPipeTasksVision for camera.js (no import() there).
+      Equivalent CDN URL (crossorigin applies to module fetch): vision_bundle.mjs on jsDelivr @ 0.10.14.
+    -->
+    <script type="module">
+      import * as MediaPipeTasksVision from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+      window.MediaPipeTasksVision = MediaPipeTasksVision;
+    </script>
+    <script type="module" src="js/camera.js?v=4"></script>
+    <script type="module" src="js/app.js?v=32"></script>
+  </body>
+</html>
