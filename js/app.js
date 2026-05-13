@@ -403,9 +403,9 @@ async function main() {
   const sidebarProgressPanelEl = qs("sidebar-progress-panel");
   const sidebarProgressMainEl = qs("sidebar-progress-main");
   const sidebarProgressHistoryEl = qs("sidebar-progress-history");
-  const sidebarStatTotalSessionsEl = qs("sidebar-stat-total-sessions");
-  const sidebarStatStreakEl = qs("sidebar-stat-streak");
-  const sidebarStatPrizesEl = qs("sidebar-stat-prizes");
+  const sidebarStatTotalSessionsNumEl = qs("sidebar-stat-total-sessions-num");
+  const sidebarStatStreakNumEl = qs("sidebar-stat-streak-num");
+  const sidebarStatPrizesNumEl = qs("sidebar-stat-prizes-num");
   /** @type {HTMLImageElement} */
   const sidebarCatEl = /** @type {any} */ (qs("sidebar-progress-cat"));
 
@@ -562,9 +562,9 @@ async function main() {
       sidebarProgressMainEl.setAttribute("aria-hidden", "true");
       sidebarProgressHistoryEl.setAttribute("aria-hidden", "false");
       const stats = sess.aggregateHistoryStats(EXERCISE_IDS);
-      sidebarStatTotalSessionsEl.textContent = `Total sessions: ${stats.totalSessions}`;
-      sidebarStatStreakEl.textContent = `Current streak: ${stats.streakDays} days`;
-      sidebarStatPrizesEl.textContent = `Prizes won: ${stats.prizesWon}`;
+      sidebarStatTotalSessionsNumEl.textContent = String(stats.totalSessions);
+      sidebarStatStreakNumEl.textContent = String(stats.streakDays);
+      sidebarStatPrizesNumEl.textContent = String(stats.prizesWon);
       sidebarCatEl.src = "assets/images/cat.png";
       sidebarProgressPanelEl.setAttribute("aria-label", "All-time stats");
       return;

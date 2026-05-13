@@ -60,8 +60,8 @@ function addCalendarDaysToKey(dayKey, deltaDays) {
 }
 
 /**
- * Consecutive local calendar days from today backward where at least one period is fully complete.
- * Today must have a completed session to start the streak; otherwise 0.
+ * Consecutive local calendar days from today backward where morning AND evening are both fully complete.
+ * Today must qualify or streak is 0.
  * @param {readonly string[]} allExerciseIds
  */
 export function computeHistoryStreakDays(allExerciseIds, now = new Date()) {
@@ -71,7 +71,7 @@ export function computeHistoryStreakDays(allExerciseIds, now = new Date()) {
     const key = addCalendarDaysToKey(start, -i);
     const morningDone = isPeriodFullyComplete("morning", allExerciseIds, key);
     const eveningDone = isPeriodFullyComplete("evening", allExerciseIds, key);
-    if (!morningDone && !eveningDone) break;
+    if (!morningDone || !eveningDone) break;
     streak += 1;
   }
   return streak;
