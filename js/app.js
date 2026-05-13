@@ -557,6 +557,7 @@ async function main() {
 
     if (showHistory) {
       sidebarProgressStackEl.classList.remove("sidebar-progress-stack--evening-wait");
+      sidebarProgressPanelEl.classList.add("sidebar-progress-panel--history");
       sidebarProgressCounterEl.hidden = true;
       sidebarDotsEl.hidden = true;
       sidebarMotivationEl.hidden = true;
@@ -574,6 +575,7 @@ async function main() {
       return;
     }
 
+    sidebarProgressPanelEl.classList.remove("sidebar-progress-panel--history");
     sidebarProgressCounterEl.hidden = false;
     sidebarDotsEl.hidden = false;
     sidebarMotivationEl.hidden = false;

@@ -542,6 +542,13 @@ button.nav-item {
   color: var(--color-text-muted);
 }
 
+/* History tab: no X/7 row, no dots, no motivation — stats only */
+.sidebar-progress-panel--history .progress-counter,
+.sidebar-progress-panel--history .sidebar-progress-dots,
+.sidebar-progress-panel--history .sidebar-progress-motivation {
+  display: none !important;
+}
+
 .sidebar-progress-history {
   display: flex;
   flex-direction: column;
@@ -581,14 +588,21 @@ button.nav-item {
   color: var(--session-heading-muted);
 }
 
-.sidebar-progress-stat__num,
-.sidebar-progress-stat__suffix {
+.sidebar-progress-stat__num {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 18px;
-  line-height: 1.2;
+  font-size: 24px;
+  line-height: 1.15;
   font-variant-numeric: tabular-nums;
   color: #839920;
+}
+
+.sidebar-progress-stat__suffix {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--session-heading-muted);
 }
 
 .sidebar-progress-history[hidden] {
