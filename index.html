@@ -30,7 +30,7 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles/main.css?v=35" />
+    <link rel="stylesheet" href="styles/main.css?v=36" />
     <link rel="icon" type="image/png" href="assets/icons/mn-favicon.png" />
     <link rel="shortcut icon" href="assets/icons/mn-favicon.png" />
     <link rel="apple-touch-icon" href="assets/icons/mn-favicon.png" />
@@ -78,11 +78,23 @@
                 alt=""
               />
               <section class="sidebar-progress-panel" id="sidebar-progress-panel" aria-label="Progress">
-                <div class="progress-counter" id="sidebar-progress-counter">
-                  <span class="count-big" id="sidebar-count-big">0</span><span class="count-slash">/7</span><span class="count-suffix"> done</span>
+                <div id="sidebar-progress-main">
+                  <div class="progress-counter" id="sidebar-progress-counter">
+                    <span class="count-big" id="sidebar-count-big">0</span><span class="count-slash">/7</span><span class="count-suffix"> done</span>
+                  </div>
+                  <div id="sidebar-progress-dots" class="sidebar-progress-dots" role="presentation"></div>
+                  <p id="sidebar-progress-motivation" class="sidebar-progress-motivation">Let's go!</p>
                 </div>
-                <div id="sidebar-progress-dots" class="sidebar-progress-dots" role="presentation"></div>
-                <p id="sidebar-progress-motivation" class="sidebar-progress-motivation">Let's go!</p>
+                <div
+                  id="sidebar-progress-history"
+                  class="sidebar-progress-history"
+                  hidden
+                  aria-hidden="true"
+                >
+                  <p class="sidebar-progress-stat" id="sidebar-stat-total-sessions">Total sessions: 0</p>
+                  <p class="sidebar-progress-stat" id="sidebar-stat-streak">Current streak: 0 days</p>
+                  <p class="sidebar-progress-stat" id="sidebar-stat-prizes">Prizes won: 0</p>
+                </div>
               </section>
             </div>
           </div>
@@ -242,6 +254,6 @@
       window.MediaPipeTasksVision = MediaPipeTasksVision;
     </script>
     <script type="module" src="js/camera.js?v=5"></script>
-    <script type="module" src="js/app.js?v=44"></script>
+    <script type="module" src="js/app.js?v=45"></script>
   </body>
 </html>

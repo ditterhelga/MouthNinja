@@ -49,6 +49,56 @@ export function listDayKeysDescending() {
   return Object.keys(store).sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
 }
 
+/** @param {string} dayKey yyyy-mm-dd @param {number} deltaDays */
+function addCalendarDaysToKey(dayKey, deltaDays) {
+  const parts = dayKey.split("-").map(Number);
+  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return dayKey;
+  const [y, mo, d] = parts;
+  const dt = new Date(y, mo - 1, d);
+  dt.setDate(dt.getDate() + deltaDays);
+  return todayKey(dt);
+}
+
+/**
+ * Consecutive local calendar days from today backward where at least one period is fully complete.
+ * Today must have a completed session to start the streak; otherwise 0.
+ * @param {readonly string[]} allExerciseIds
+ */
+export function computeHistoryStreakDays(allExerciseIds, now = new Date()) {
+  let streak = 0;
+  const start = todayKey(now);
+  for (let i = 0; i < 365 * 25; i += 1) {
+    const key = addCalendarDaysToKey(start, -i);
+    const morningDone = isPeriodFullyComplete("morning", allExerciseIds, key);
+    const eveningDone = isPeriodFullyComplete("evening", allExerciseIds, key);
+    if (!morningDone && !eveningDone) break;
+    streak += 1;
+  }
+  return streak;
+}
+
+/**
+ * @param {readonly string[]} allExerciseIds
+ * @returns {{ totalSessions: number, streakDays: number, prizesWon: number }}
+ */
+export function aggregateHistoryStats(allExerciseIds) {
+  const store = readStore();
+  let totalSessions = 0;
+  let prizesWon = 0;
+  for (const dayKey of Object.keys(store)) {
+    if (isPeriodFullyComplete("morning", allExerciseIds, dayKey)) totalSessions += 1;
+    if (isPeriodFullyComplete("evening", allExerciseIds, dayKey)) totalSessions += 1;
+    const rec = getDayRecord(dayKey);
+    if (rec) {
+      if (rec.morningPrize) prizesWon += 1;
+      if (rec.eveningPrize) prizesWon += 1;
+      if (rec.prizeLabel && !rec.morningPrize && !rec.eveningPrize) prizesWon += 1;
+    }
+  }
+  const streakDays = computeHistoryStreakDays(allExerciseIds);
+  return { totalSessions, streakDays, prizesWon };
+}
+
 /** @returns {{ morningIds: string[], eveningIds: string[], morningPrize: string | null, eveningPrize: string | null, prizeLabel: string | null } | null} */
 export function getDayRecord(dayKey) {
   const store = readStore();

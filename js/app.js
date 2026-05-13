@@ -400,6 +400,12 @@ async function main() {
   const sidebarCountEl = qs("sidebar-count-big");
   const sidebarDotsEl = qs("sidebar-progress-dots");
   const sidebarMotivationEl = qs("sidebar-progress-motivation");
+  const sidebarProgressPanelEl = qs("sidebar-progress-panel");
+  const sidebarProgressMainEl = qs("sidebar-progress-main");
+  const sidebarProgressHistoryEl = qs("sidebar-progress-history");
+  const sidebarStatTotalSessionsEl = qs("sidebar-stat-total-sessions");
+  const sidebarStatStreakEl = qs("sidebar-stat-streak");
+  const sidebarStatPrizesEl = qs("sidebar-stat-prizes");
   /** @type {HTMLImageElement} */
   const sidebarCatEl = /** @type {any} */ (qs("sidebar-progress-cat"));
 
@@ -549,6 +555,26 @@ async function main() {
     const now = new Date();
     const dk = sess.todayKey(now);
 
+    if (showHistory) {
+      sidebarProgressStackEl.classList.remove("sidebar-progress-stack--evening-wait");
+      sidebarProgressMainEl.hidden = true;
+      sidebarProgressHistoryEl.hidden = false;
+      sidebarProgressMainEl.setAttribute("aria-hidden", "true");
+      sidebarProgressHistoryEl.setAttribute("aria-hidden", "false");
+      const stats = sess.aggregateHistoryStats(EXERCISE_IDS);
+      sidebarStatTotalSessionsEl.textContent = `Total sessions: ${stats.totalSessions}`;
+      sidebarStatStreakEl.textContent = `Current streak: ${stats.streakDays} days`;
+      sidebarStatPrizesEl.textContent = `Prizes won: ${stats.prizesWon}`;
+      sidebarCatEl.src = "assets/images/cat.png";
+      sidebarProgressPanelEl.setAttribute("aria-label", "All-time stats");
+      return;
+    }
+
+    sidebarProgressMainEl.hidden = false;
+    sidebarProgressHistoryEl.hidden = true;
+    sidebarProgressMainEl.setAttribute("aria-hidden", "false");
+    sidebarProgressHistoryEl.setAttribute("aria-hidden", "true");
+
     /** Evening tab before 4 PM — progress UI is still evening, motivation follows morning completion. */
     const eveningWaitingNav =
       !showHistory && activePeriod === "evening" && !isMorningWindowClosed(now);
@@ -601,7 +627,7 @@ async function main() {
     } else {
       sidebarMotivationEl.textContent = PROGRESS_COPY[motivationDoneCount] ?? PROGRESS_COPY[0];
     }
-    sidebarCatEl.closest(".sidebar-progress-panel")?.setAttribute(
+    sidebarProgressPanelEl.setAttribute(
       "aria-label",
       `${activePeriod.charAt(0).toUpperCase() + activePeriod.slice(1)} progress`
     );
