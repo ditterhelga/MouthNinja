@@ -542,12 +542,9 @@ button.nav-item {
   color: var(--color-text-muted);
 }
 
+/* Wrapper so morning/evening children use the panel flex + gap like before (no nested flex gap). */
 .sidebar-progress-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  width: 100%;
+  display: contents;
 }
 
 .sidebar-progress-history {
@@ -577,7 +574,7 @@ button.nav-item {
 .sidebar-progress-stat__num {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
   color: #839920;
