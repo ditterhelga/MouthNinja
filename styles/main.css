@@ -547,7 +547,18 @@ button.nav-item {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.sidebar-progress-history__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
   width: 100%;
 }
 
@@ -557,20 +568,25 @@ button.nav-item {
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: center;
-  gap: 6px 8px;
+  gap: 6px 10px;
   font-family: var(--font-body);
   font-weight: 500;
-  font-size: 19px;
-  line-height: 1.35;
+  font-size: 18px;
+  line-height: 1.4;
   color: var(--session-heading-muted);
   text-align: center;
 }
 
-.sidebar-progress-stat__num {
+.sidebar-progress-stat__label {
+  color: var(--session-heading-muted);
+}
+
+.sidebar-progress-stat__num,
+.sidebar-progress-stat__suffix {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 24px;
-  line-height: 1.1;
+  font-size: 18px;
+  line-height: 1.2;
   font-variant-numeric: tabular-nums;
   color: #839920;
 }
