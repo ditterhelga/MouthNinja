@@ -59,7 +59,7 @@ const OVERLAY_TEXT = /** @type {Record<Exclude<SessionListGateMode, null>, strin
   eveningWait: "Evening training starts at 4 PM. Come back later, ninja!",
 });
 
-const MN_DEBUG_SESSION_TOGGLE = true;
+const MN_DEBUG_SESSION_TOGGLE = false;
 
 const EXERCISE_DONE_GIFS = [
   "assets/gifs/Cat%20Driving%20GIF%20by%20hamlet.gif",
