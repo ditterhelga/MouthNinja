@@ -542,9 +542,13 @@ button.nav-item {
   color: var(--color-text-muted);
 }
 
-/* Wrapper so morning/evening children use the panel flex + gap like before (no nested flex gap). */
+/* Morning / evening: extra vertical space between counter, dots, and motivation (roomier than panel gap alone). */
 .sidebar-progress-main {
-  display: contents;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
 }
 
 .sidebar-progress-history {
@@ -820,7 +824,7 @@ button.nav-item {
 
 .history-card__period {
   white-space: nowrap;
-  color: var(--color-text);
+  color: var(--session-heading-muted);
   font-size: inherit;
 }
 
