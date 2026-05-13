@@ -1,4 +1,4 @@
-/* camera.js — load marker 2026-05-08T12:00:00Z — pair with ?v=4 in index.html + app.js import */
+/* camera.js — load marker 2026-05-13 — pair with ?v=5 in index.html + app.js import */
 const TASKS_VISION_VERSION = "0.10.14";
 
 /** WASM on jsDelivr — same package version as vision_bundle.mjs in index.html */
@@ -664,4 +664,77 @@ export async function createExerciseFacePipeline(options) {
     }
     throw e;
   }
+}
+
+/** Files in assets/audio/ (site-relative URLs). */
+export const EXERCISE_BGM_TRACKS = ["assets/audio/music.mp3"];
+
+/**
+ * Background loop for the exercise camera view only. Volume 0.5; pause preserves `currentTime`.
+ * @returns {{
+ *   audio: HTMLAudioElement,
+ *   primeUnlockFromUserGesture: () => void,
+ *   syncWithMovement: (opts: { hasFace: boolean, moving: boolean, completed: boolean }) => void,
+ *   pauseAndReset: () => void,
+ * }}
+ */
+export function createExerciseBackgroundMusic() {
+  const audio = new Audio();
+  audio.loop = true;
+  audio.volume = 0.5;
+
+  function pickRandomSrc() {
+    const tracks = EXERCISE_BGM_TRACKS;
+    if (tracks.length === 0) return;
+    audio.src = tracks[Math.floor(Math.random() * tracks.length)];
+  }
+
+  function pauseAndReset() {
+    audio.pause();
+    audio.currentTime = 0;
+  }
+
+  /** Run synchronously in the same task as the tap that starts the exercise (before any await). */
+  function primeUnlockFromUserGesture() {
+    pickRandomSrc();
+    const p = audio.play();
+    if (p !== undefined) {
+      p
+        .then(() => {
+          audio.pause();
+        })
+        .catch((err) => {
+          console.error("[MouthNinja] exercise BGM:", err);
+        });
+    }
+  }
+
+  /**
+   * Play while the timer is advancing: face visible and mouth movement detected.
+   * Pause (no reset) when movement stops or face is lost.
+   */
+  function syncWithMovement({ hasFace, moving, completed }) {
+    if (completed) {
+      pauseAndReset();
+      return;
+    }
+    const shouldPlay = hasFace && moving;
+    if (shouldPlay) {
+      const p = audio.play();
+      if (p !== undefined) {
+        p.catch((err) => {
+          console.error("[MouthNinja] exercise BGM:", err);
+        });
+      }
+    } else {
+      audio.pause();
+    }
+  }
+
+  return {
+    audio,
+    primeUnlockFromUserGesture,
+    syncWithMovement,
+    pauseAndReset,
+  };
 }

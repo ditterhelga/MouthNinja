@@ -3,7 +3,8 @@ import {
   createExerciseFacePipeline,
   CAMERA_MEDIA_CONSTRAINTS,
   syncCanvasResolutionToVideo,
-} from "./camera.js?v=4";
+  createExerciseBackgroundMusic,
+} from "./camera.js?v=5";
 import * as sess from "./session.js";
 import { mountSpinWheel, SIMPLE_SEGMENTS, FULL_SEGMENTS } from "./spin-wheel.js?v=39";
 
@@ -479,6 +480,15 @@ async function main() {
   /** @type {{ stop: () => void, dispose: () => void, resetMovementBaseline: () => void, start: () => Promise<void> } | null} */
   let pipeline = null;
 
+  /** @type {ReturnType<typeof createExerciseBackgroundMusic> | null} */
+  let exerciseBgm = null;
+
+  function disposeExerciseBgm() {
+    if (!exerciseBgm) return;
+    exerciseBgm.pauseAndReset();
+    exerciseBgm = null;
+  }
+
   function cleanupPipeline() {
     if (!pipeline) return;
     pipeline.stop();
@@ -803,6 +813,7 @@ async function main() {
 
   function leaveExerciseView() {
     dismissExerciseDoneOverlay();
+    disposeExerciseBgm();
     cleanupPipeline();
     detachCanvasResolution?.();
     releaseCamera(video);
@@ -820,6 +831,7 @@ async function main() {
     if (!exercise) return;
 
     cleanupPipeline();
+    disposeExerciseBgm();
     detachCanvasResolution?.();
     releaseCamera(video);
 
@@ -876,6 +888,9 @@ async function main() {
     syncProgressUi(false, false);
     syncStatus(false, false);
 
+    exerciseBgm = createExerciseBackgroundMusic();
+    exerciseBgm.primeUnlockFromUserGesture();
+
     let prevHadActiveMovementUi = false;
     let exerciseDoneShown = false;
 
@@ -884,6 +899,7 @@ async function main() {
       attachCanvasResolutionToVideoBounded(video, canvas);
       errEl.hidden = true;
     } catch (e) {
+      disposeExerciseBgm();
       errEl.hidden = false;
       errEl.textContent =
         "Camera access is needed for this exercise. Allow the camera in Settings, then reload.";
@@ -908,6 +924,7 @@ async function main() {
           }
 
           syncTimerUi();
+          exerciseBgm?.syncWithMovement({ hasFace, moving, completed });
 
           if (completed) {
             progressFill.style.width = "100%";
@@ -937,6 +954,7 @@ async function main() {
       });
     } catch (e) {
       console.error(e);
+      disposeExerciseBgm();
       releaseCamera(video);
       detachCanvasResolution?.();
       errEl.hidden = false;
