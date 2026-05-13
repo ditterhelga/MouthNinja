@@ -293,7 +293,12 @@ const BACK_SVG =
 
 /**
  * @param {HTMLElement} mountNode
- * @param {{ onClaimPrize: (fullLabel: string) => void, onDismiss: () => void, segments?: Array<{fullLabel:string, wheelLabel:string, weight:number}> }} opts
+ * @param {{
+ *   onClaimPrize: (fullLabel: string) => void,
+ *   onDismiss: () => void,
+ *   onRequestDismiss?: () => void,
+ *   segments?: Array<{fullLabel:string, wheelLabel:string, weight:number}>
+ * }} opts
  */
 export function mountSpinWheel(mountNode, opts) {
   const segs = opts.segments || FULL_SEGMENTS;
@@ -313,7 +318,11 @@ export function mountSpinWheel(mountNode, opts) {
   backBtn.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
-    opts.onDismiss();
+    if (typeof opts.onRequestDismiss === "function") {
+      opts.onRequestDismiss();
+    } else {
+      opts.onDismiss();
+    }
   });
   topBar.appendChild(backBtn);
 

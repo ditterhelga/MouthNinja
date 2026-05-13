@@ -476,6 +476,11 @@ button.nav-item {
   gap: 24px;
 }
 
+/* Evening tab before 16:00 — dim counter/dots/text only (cat stays full opacity). */
+.sidebar-progress-stack--evening-wait .sidebar-progress-panel {
+  opacity: 0.4;
+}
+
 .progress-counter {
   margin: 0;
   display: inline-flex;
@@ -1335,4 +1340,81 @@ svg .wheel-segment-label {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
+}
+
+/* Back navigation confirmation — exercise camera & spin wheel */
+.back-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(24px, var(--safe-top)) max(20px, var(--safe-right)) max(28px, var(--safe-bottom))
+    max(20px, var(--safe-left));
+  box-sizing: border-box;
+  background: rgba(13, 13, 13, 0.8);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.back-confirm-overlay[hidden],
+.back-confirm-overlay[hidden=""] {
+  display: none !important;
+}
+
+.back-confirm-overlay__card {
+  width: min(100%, 400px);
+  box-sizing: border-box;
+  padding: 32px;
+  border-radius: 16px;
+  background: #1a1a1a;
+  cursor: default;
+}
+
+.back-confirm-overlay__title {
+  margin: 0 0 28px;
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #f0f0f0;
+  text-align: center;
+}
+
+.back-confirm-overlay__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.back-confirm-overlay__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 24px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.back-confirm-overlay__btn--primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.back-confirm-overlay__btn--secondary {
+  background: transparent;
+  color: #f0f0f0;
+  border: 2px solid rgba(240, 240, 240, 0.35);
+}
+
+.back-confirm-overlay__btn:active {
+  opacity: 0.92;
 }

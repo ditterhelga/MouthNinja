@@ -6,7 +6,7 @@ import {
   createExerciseBackgroundMusic,
 } from "./camera.js?v=5";
 import * as sess from "./session.js";
-import { mountSpinWheel, SIMPLE_SEGMENTS, FULL_SEGMENTS } from "./spin-wheel.js?v=39";
+import { mountSpinWheel, SIMPLE_SEGMENTS, FULL_SEGMENTS } from "./spin-wheel.js?v=40";
 
 function formatHistoryDay(dayKey) {
   const parts = dayKey.split("-");
@@ -388,6 +388,11 @@ async function main() {
   const overlaySpin = qs("overlay-spin-root");
   const spinMount = qs("spin-wheel-mount");
 
+  const overlayBackConfirm = qs("overlay-back-confirm");
+  const btnBackConfirmKeep = qs("btn-back-confirm-keep");
+  const btnBackConfirmStop = qs("btn-back-confirm-stop");
+  const sidebarProgressStackEl = qs("sidebar-progress-stack");
+
   const exerciseDoneOverlay = qs("overlay-exercise-done");
   const exerciseDoneGif = /** @type {HTMLImageElement} */ (qs("exercise-done-gif"));
   const exerciseDoneMsg = qs("exercise-done-msg");
@@ -483,6 +488,29 @@ async function main() {
   /** @type {ReturnType<typeof createExerciseBackgroundMusic> | null} */
   let exerciseBgm = null;
 
+  /** @type {null | (() => void)} */
+  let pendingBackConfirmAction = null;
+
+  function openBackConfirm(onConfirmStop) {
+    if (!overlayBackConfirm.hidden) return;
+    pendingBackConfirmAction = onConfirmStop;
+    showOverlay(overlayBackConfirm);
+  }
+
+  btnBackConfirmKeep.addEventListener("click", (e) => {
+    e.stopPropagation();
+    pendingBackConfirmAction = null;
+    hideOverlay(overlayBackConfirm);
+  });
+
+  btnBackConfirmStop.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const fn = pendingBackConfirmAction;
+    pendingBackConfirmAction = null;
+    hideOverlay(overlayBackConfirm);
+    if (typeof fn === "function") fn();
+  });
+
   function disposeExerciseBgm() {
     if (!exerciseBgm) return;
     exerciseBgm.pauseAndReset();
@@ -524,6 +552,7 @@ async function main() {
     /** Evening tab before 4 PM — progress UI is still evening, motivation follows morning completion. */
     const eveningWaitingNav =
       !showHistory && activePeriod === "evening" && !isMorningWindowClosed(now);
+    sidebarProgressStackEl.classList.toggle("sidebar-progress-stack--evening-wait", eveningWaitingNav);
     const periodForMotivation = eveningWaitingNav ? "morning" : activePeriod;
 
     let motivationDoneCount = 0;
@@ -561,6 +590,8 @@ async function main() {
     } else if (!showHistory && activePeriod === "evening") {
       if (sess.isPeriodFullyComplete("evening", EXERCISE_IDS, dk)) {
         sidebarCatSrc = "assets/images/cat-done.png";
+      } else if (eveningWaitingNav) {
+        sidebarCatSrc = "assets/icons/cat-bored.png";
       }
     }
     sidebarCatEl.src = sidebarCatSrc;
@@ -612,6 +643,9 @@ async function main() {
       },
       onDismiss: () => {
         hideOverlay(overlaySpin);
+      },
+      onRequestDismiss: () => {
+        openBackConfirm(() => hideOverlay(overlaySpin));
       },
     });
   }
@@ -761,6 +795,9 @@ async function main() {
         },
         onDismiss: () => {
           hideOverlay(overlaySpin);
+        },
+        onRequestDismiss: () => {
+          openBackConfirm(() => hideOverlay(overlaySpin));
         },
       });
       showOverlay(overlaySpin);
@@ -967,7 +1004,7 @@ async function main() {
   }
 
   btnBack.addEventListener("click", () => {
-    leaveExerciseView();
+    openBackConfirm(() => leaveExerciseView());
   });
 
   refreshFullListScreen();

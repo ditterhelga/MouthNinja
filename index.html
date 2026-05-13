@@ -30,7 +30,7 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles/main.css?v=34" />
+    <link rel="stylesheet" href="styles/main.css?v=35" />
     <link rel="icon" type="image/png" href="assets/icons/mn-favicon.png" />
     <link rel="shortcut icon" href="assets/icons/mn-favicon.png" />
     <link rel="apple-touch-icon" href="assets/icons/mn-favicon.png" />
@@ -70,7 +70,7 @@
             </nav>
           </div>
           <div class="sidebar-progress">
-            <div class="sidebar-progress-stack">
+            <div class="sidebar-progress-stack" id="sidebar-progress-stack">
               <img
                 class="sidebar-progress-cat"
                 id="sidebar-progress-cat"
@@ -147,6 +147,31 @@
       <div id="spin-wheel-mount"></div>
     </div>
 
+    <div
+      id="overlay-back-confirm"
+      class="back-confirm-overlay"
+      hidden
+      aria-hidden="true"
+      role="presentation"
+    >
+      <div
+        class="back-confirm-overlay__card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="back-confirm-title"
+      >
+        <h2 id="back-confirm-title" class="back-confirm-overlay__title">Do you really want to stop?</h2>
+        <div class="back-confirm-overlay__actions">
+          <button type="button" class="back-confirm-overlay__btn back-confirm-overlay__btn--primary" id="btn-back-confirm-keep">
+            Keep going
+          </button>
+          <button type="button" class="back-confirm-overlay__btn back-confirm-overlay__btn--secondary" id="btn-back-confirm-stop">
+            Yes, stop
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div id="overlay-exercise-done" class="exercise-done-overlay" hidden aria-hidden="true">
       <img id="exercise-done-gif" class="exercise-done-overlay__gif" src="" alt="" />
       <p id="exercise-done-msg" class="exercise-done-overlay__msg"></p>
@@ -217,6 +242,6 @@
       window.MediaPipeTasksVision = MediaPipeTasksVision;
     </script>
     <script type="module" src="js/camera.js?v=5"></script>
-    <script type="module" src="js/app.js?v=42"></script>
+    <script type="module" src="js/app.js?v=43"></script>
   </body>
 </html>
