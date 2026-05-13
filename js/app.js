@@ -398,10 +398,10 @@ async function main() {
   const exerciseDoneMsg = qs("exercise-done-msg");
 
   const sidebarCountEl = qs("sidebar-count-big");
+  const sidebarProgressCounterEl = qs("sidebar-progress-counter");
   const sidebarDotsEl = qs("sidebar-progress-dots");
   const sidebarMotivationEl = qs("sidebar-progress-motivation");
   const sidebarProgressPanelEl = qs("sidebar-progress-panel");
-  const sidebarProgressMainEl = qs("sidebar-progress-main");
   const sidebarProgressHistoryEl = qs("sidebar-progress-history");
   const sidebarStatTotalSessionsNumEl = qs("sidebar-stat-total-sessions-num");
   const sidebarStatStreakNumEl = qs("sidebar-stat-streak-num");
@@ -557,9 +557,13 @@ async function main() {
 
     if (showHistory) {
       sidebarProgressStackEl.classList.remove("sidebar-progress-stack--evening-wait");
-      sidebarProgressMainEl.hidden = true;
+      sidebarProgressCounterEl.hidden = true;
+      sidebarDotsEl.hidden = true;
+      sidebarMotivationEl.hidden = true;
+      sidebarProgressCounterEl.setAttribute("aria-hidden", "true");
+      sidebarDotsEl.setAttribute("aria-hidden", "true");
+      sidebarMotivationEl.setAttribute("aria-hidden", "true");
       sidebarProgressHistoryEl.hidden = false;
-      sidebarProgressMainEl.setAttribute("aria-hidden", "true");
       sidebarProgressHistoryEl.setAttribute("aria-hidden", "false");
       const stats = sess.aggregateHistoryStats(EXERCISE_IDS);
       sidebarStatTotalSessionsNumEl.textContent = String(stats.totalSessions);
@@ -570,9 +574,13 @@ async function main() {
       return;
     }
 
-    sidebarProgressMainEl.hidden = false;
+    sidebarProgressCounterEl.hidden = false;
+    sidebarDotsEl.hidden = false;
+    sidebarMotivationEl.hidden = false;
+    sidebarProgressCounterEl.setAttribute("aria-hidden", "false");
+    sidebarDotsEl.setAttribute("aria-hidden", "false");
+    sidebarMotivationEl.setAttribute("aria-hidden", "false");
     sidebarProgressHistoryEl.hidden = true;
-    sidebarProgressMainEl.setAttribute("aria-hidden", "false");
     sidebarProgressHistoryEl.setAttribute("aria-hidden", "true");
 
     /** Evening tab before 4 PM — progress UI is still evening, motivation follows morning completion. */

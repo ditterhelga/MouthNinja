@@ -542,15 +542,6 @@ button.nav-item {
   color: var(--color-text-muted);
 }
 
-/* Morning / evening: extra vertical space between counter, dots, and motivation (roomier than panel gap alone). */
-.sidebar-progress-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 40px;
-  width: 100%;
-}
-
 .sidebar-progress-history {
   display: flex;
   flex-direction: column;
@@ -584,8 +575,7 @@ button.nav-item {
   color: #839920;
 }
 
-.sidebar-progress-history[hidden],
-.sidebar-progress-main[hidden] {
+.sidebar-progress-history[hidden] {
   display: none !important;
 }
 
