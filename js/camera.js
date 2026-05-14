@@ -1,4 +1,4 @@
-/* camera.js — load marker 2026-05-13 — pair with ?v=5 in index.html + app.js import */
+/* camera.js — load marker 2026-05-14 — pair with ?v=7 in index.html + app.js import */
 const TASKS_VISION_VERSION = "0.10.14";
 
 /** WASM on jsDelivr — same package version as vision_bundle.mjs in index.html */
@@ -129,11 +129,12 @@ const IDX_NOSE_TIP = 1;
 const IDX_MOUTH_CENTER = 13;
 const IDX_CHIN = 152;
 
-const MOVE_THRESHOLD_ON = 0.0042;
-const MOVE_THRESHOLD_OFF = 0.0028;
+/** Lip latch (~40% below prior 0.0042 / 0.0028) — all exercises use this lip_movement mechanic. */
+const MOVE_THRESHOLD_ON = 0.00252;
+const MOVE_THRESHOLD_OFF = 0.00168;
 
 /** Seconds of continuous below-threshold before UI/timer treat movement as inactive. */
-const LIP_MOVE_DEBOUNCE_OFF_SEC = 1.5;
+const LIP_MOVE_DEBOUNCE_OFF_SEC = 2.0;
 
 /** Horizontal crop = face width (|263−33|) × (1 + 2×this padding per side). */
 const CROP_SIDE_PAD_FACE_WIDTH = 0.8;
@@ -145,7 +146,7 @@ const BRACKET_LEG_FRAC_SHORTER = 0.12;
 /**
  * @typedef {Object} FrameTelemetry
  * @property {boolean} hasFace
- * @property {boolean} moving — timer advances when true (lip movement threshold met).
+ * @property {boolean} moving — timer advances when true (lip movement threshold + debounce met).
  * @property {number} dtSec
  */
 

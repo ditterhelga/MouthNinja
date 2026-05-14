@@ -4,7 +4,7 @@ import {
   CAMERA_MEDIA_CONSTRAINTS,
   syncCanvasResolutionToVideo,
   createExerciseBackgroundMusic,
-} from "./camera.js?v=5";
+} from "./camera.js?v=7";
 import * as sess from "./session.js";
 import { mountSpinWheel, SIMPLE_SEGMENTS, FULL_SEGMENTS } from "./spin-wheel.js?v=40";
 
@@ -811,32 +811,6 @@ async function main() {
   if (sidebarBrand) {
     sidebarBrand.addEventListener("click", () => {
       selectPeriod(defaultPeriodForNow());
-    });
-  }
-
-  const btnTestSpinWheel = document.getElementById("btn-test-spin-wheel");
-  if (btnTestSpinWheel) {
-    btnTestSpinWheel.hidden = false;
-    btnTestSpinWheel.addEventListener("click", () => {
-      spinMount.replaceChildren();
-      mountSpinWheel(spinMount, {
-        onClaimPrize: (fullLabel) => {
-          try {
-            sess.saveDayPrize(sess.todayKey(), fullLabel);
-          } catch (err) {
-            console.error("[MouthNinja] saveDayPrize:", err);
-          } finally {
-            hideOverlay(overlaySpin);
-          }
-        },
-        onDismiss: () => {
-          hideOverlay(overlaySpin);
-        },
-        onRequestDismiss: () => {
-          openBackConfirm(() => hideOverlay(overlaySpin));
-        },
-      });
-      showOverlay(overlaySpin);
     });
   }
 
